@@ -23,8 +23,16 @@ const int sake = 7;
 const int water = 8;
 const int redbull = 9;
 int address;
+const int bPinRight = 3;
+const int bPinTop = 4;
+const int bPinBot = 5;
+const int bPinLeft = 6;
 
 void setup() {
+  pinMode(bPinTop, INPUT_PULLUP);
+  pinMode(bPinLeft, INPUT_PULLUP);
+  pinMode(bPinRight, INPUT_PULLUP);
+  pinMode(bPinBot, INPUT_PULLUP);
   oled.begin();
   oled.clear(ALL);
   oled.display();
@@ -35,7 +43,8 @@ void setup() {
 }
 
 void loop() {
-
+  menu();
+  menuSelect();
 }
 
 void initializeEEPROMData() {
@@ -116,3 +125,43 @@ void readDrinkData() {
   }
 }
 
+void menu() {
+  oled.clear(PAGE);
+  oled.setFontType(0);
+  oled.setCursor(0,0);
+  oled.print("Sel(BTop)\nMod(BL)\nNew(BR)");
+  oled.display();
+}
+
+void menuSelect() {
+  for (;;){
+    if (digitalRead(bPinLeft) == LOW) {
+      oled.clear(PAGE);
+      oled.print("Test1\n");
+      oled.display();
+      delay(SEC);
+      break;
+    } else if (digitalRead(bPinTop) == LOW){
+      oled.clear(PAGE);
+      oled.print("Test2\n");
+      oled.display();
+      delay(SEC);
+      break;
+    }else if (digitalRead(bPinRight) == LOW) {
+      oled.clear(PAGE);
+      oled.print("Test3\n");
+      oled.display();
+      delay(SEC);
+      break;
+    }else if (digitalRead(bPinBot) == LOW) {
+      oled.clear(PAGE);
+      oled.print("Test4\n");
+      oled.display();
+      delay(SEC);
+      break;
+    }
+  }
+}
+
+void joyStick() {
+}
