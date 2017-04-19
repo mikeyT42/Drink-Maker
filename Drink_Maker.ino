@@ -8,7 +8,9 @@
 #define SEC 1000
 
 MicroOLED oled(PIN_RESET, DC_JUMPER);
-
+//-----------------------------------------------------------------------
+const short MAX = 797;
+const short MIN = 791;
 const int numDrinks = 6;
 const int numInfo = 7;
 String drinks[numDrinks][numInfo];
@@ -35,7 +37,9 @@ const int l2OZ = 4;
 const int l3OZ = 6;
 //left drinks[drinkselection--][NAME]
 //right drink[drinkselection++][NAME]
-
+int pin1 = 0; // x value
+int pin2 = 1; // y value
+//-----------------------------------------------------------------------
 void setup() {
   pinMode(bPinTop, INPUT_PULLUP);
   pinMode(bPinLeft, INPUT_PULLUP);
@@ -47,10 +51,10 @@ void setup() {
   Serial.begin(9600);
   while(!Serial) {;}
   delay(SEC);
-  //initializeEEPROMData();
-  readDrinkData();
+  initializeEEPROMData();
+  //readDrinkData();
 }
-
+//-----------------------------------------------------------------------
 void loop() {
   menu();
   menuSelect();
@@ -97,6 +101,29 @@ void initializeEEPROMData() {
         Serial.print("address=");
         Serial.println(address);
         Serial.println("done writing info");
+      }
+    }
+    /* Add to EEPROM */
+    for (address = 0; drink < numDrinks-1; address++) {
+      /* Reached the end of a line */
+      if (column > numInfo) {
+        drink++;
+        column = 0;
+        Serial.print("address=");
+        Serial.print(address);
+        Serial.print("  drink=");
+        Serial.println(drink);
+        EEPROM.write(address, '\n');
+      }
+    }
+    String info = tdrinks[drink][column];
+    Serial.println(info);
+    /* Add characters from info into EEPROM */
+    for (int index = 0; ; index++, address++) {
+      if (index > info.length()-1) {
+        Serial.print("address=");
+        Serial.print(address);
+        Serial.println("done reading info");
         EEPROM.write(address, ' ');
         column++;
         break;
@@ -172,24 +199,28 @@ void menuSelect() {
   for (;;){ /* wait for input */
     if (digitalRead(bPinLeft) == LOW) {
       oled.clear(PAGE);
+      oled.setCursor(0,0);
       oled.print("Test1\n");
       oled.display();
       delay(SEC);
       break;
     } else if (digitalRead(bPinTop) == LOW){
       oled.clear(PAGE);
+      oled.setCursor(0,0);
       oled.print("Test2\n");
       oled.display();
       delay(SEC);
       break;
     }else if (digitalRead(bPinRight) == LOW) {
       oled.clear(PAGE);
+      oled.setCursor(0,0);
       oled.print("Test3\n");
       oled.display();
       delay(SEC);
       break;
     }else if (digitalRead(bPinBot) == LOW) {
       oled.clear(PAGE);
+      oled.setCursor(0,0);
       oled.print("Test4\n");
       oled.display();
       delay(SEC);
@@ -197,19 +228,44 @@ void menuSelect() {
     }
   }
 }
-
-//------------------------------------------------------------------
-/*
- * Utility function for joystick.
-*/
+//-----------------------------------------------------------------------
 int xjoyStick() {
+  int xjoystick = analogRead(pin1);
+  delay(50);
+  if (xjoystick <= MAX && xjoystick >= MIN) {
+    //do nothing, no input
+    return -1;
+  }
+  else {
+    return xjoystick;
+  }
 }
-
-//------------------------------------------------------------------
-/*
- * Print options for selecting a drink.
-*/
-void selDrink() {
+//-----------------------------------------------------------------------
+int yjoyStick() {
+  int yjoystick = analogRead(pin2);
+  delay(50);
+  if (yjoystick <= MAX && yjoystick >= MIN) {
+    //do nothing, no input
+    return -1;
+  }
+  else {
+    return yjoystick;
+  }
+}
+//-----------------------------------------------------------------------
+void selectDrink() {
+  int selectDrinker = 0;
+  // Use array 0-6, use loop to go through 0-6 with joystick, at 7 go back to 0
+  if ( //read joystick)
+     //left drinks[drinkselection--][NAME]
+     //right drinks[drinkseleection++][NAME]
+}
+//-----------------------------------------------------------------------
+void modDrink() {
   
+}
+//-----------------------------------------------------------------------
+void newDrink() {
+
 }
 
