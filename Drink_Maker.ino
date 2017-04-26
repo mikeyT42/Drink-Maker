@@ -44,6 +44,7 @@ String drinks[numDrinks][numInfo] = { /* For initialization */
     {"drink5", "0", "0", "3", "2", "4", "2"},
     {"drink6", "4", "2", "9", "2", "5", "3"}
   };
+
 const byte none = 0;
 const byte whiskey = 1;
 const byte vodka = 2;
@@ -53,6 +54,7 @@ const byte rum = 5;
 const byte gin = 6;
 const byte sake = 7;
 const byte water = 8;
+
 const byte redbull = 9;
 const byte bPinRight = 3;
 const byte bPinTop = 4;
@@ -96,7 +98,8 @@ void loop() {
       drinkSelect();
       break;
     case MOD:
-      modDrink();
+      int drink = drinkSelect();
+      modDrink(drink);
       break;
     case NEW:
       newDrink();
@@ -123,8 +126,6 @@ void printMenu() {
   oled.display();
 }
 
-//------------------------------------------------------------------
-//------------------------------------------------------------------
 //------------------------------------------------------------------
 /*
  * Controller for the menu.
@@ -166,9 +167,10 @@ int menuSelect() {
 //------------------------------------------------------------------
 //------------------------------------------------------------------
 //------------------------------------------------------------------
-void drinkSelect(){
+
+//------------------------------------------------------------------
+int drinkSelect(){
   int x;
-  int y;
   int drink = 0;
 
   Serial.print("\n\nEntered drink selection\n\n");
@@ -192,7 +194,7 @@ void drinkSelect(){
       oled.display();
       delay(SEC);
       //makeDrink
-      break;
+      return drink;
     }
     
     if (x != -1) {
@@ -217,92 +219,9 @@ void drinkSelect(){
 }
 
 //------------------------------------------------------------------
-//------------------------------------------------------------------
-//------------------------------------------------------------------
-/*
- * Print a spcific piece of information (column) about a drink.
- * Requires the cursor and font to be set beforehand.
- * 
- * example:
- * printDrinkData(4, l1OZ);
- */
-void printDrinkData(const int drink, const int column) {
-  String info = drinks[drink][column];
-  oled.print(info);
-}
-
-//------------------------------------------------------------------
-int xjoyStick() {
-  int x = analogRead(pin1);
-  if ( x == RIGHT || x == LEFT ) {
-    //Serial.println("Valid");
-    //Serial.println(x);
-    return x;
-  } else 
-      return -1;
-}
-
-//------------------------------------------------------------------
-int yjoyStick() {
-  int y = analogRead(pin2);
-  if ( y == UP || y == DOWN ) {
-    return y;
-  } else
-      return -1;
-}
-
-//------------------------------------------------------------------
-void modDrink() {
-  int x;
-  int drink = 0;
-
+void modDrink(int drink) {
   Serial.print("\n\nEntered mod drink\n\n");
-  
-  oled.setFontType(0);
-  oled.clear(PAGE);
-  oled.setCursor(0,0);
-  oled.print("Push BBot to sel\n\n");
-  Serial.println(drinks[drink][NAME]);
-  printDrinkData(drink, NAME);
-  oled.display();
-  for (;;) {
-    x = xjoyStick();
-
-    if(digitalRead(bPinBot) == LOW) {
-      Serial.println("Drink selected");
-      oled.clear(PAGE);
-      oled.setCursor(0,0);
-      oled.print("You sel\n\n");
-      printDrinkData(drink, NAME);
-      oled.display();
-      delay(SEC);
-      /* Modify data of a drink */
-      mod(drink);
-      break;
-    }
     
-    if (x != -1) {
-      if (x == LEFT) {
-        while (xjoyStick() == LEFT) {;} // do nothing
-        drink--;
-      } else /* x == RIGHT */ {
-        while (xjoyStick() == RIGHT) {;} // do nothing
-        drink++;
-      }
-        
-      if (drink < 0) drink = numDrinks-1;
-      if (drink >= numDrinks) drink = 0;
-      oled.clear(PAGE);
-      oled.setCursor(0,0);
-      Serial.println(drinks[drink][NAME]);
-      oled.print("Push BBot to sel\n\n");
-      printDrinkData(drink, NAME);
-      oled.display();
-    }
-  }
-}
-
-void mod(int drink) {
   oled.setFontType(0);
   oled.clear(PAGE);
   oled.setCursor(0,0);
@@ -321,7 +240,10 @@ void mod(int drink) {
   saveEEPROMData();
 }
 
+//------------------------------------------------------------------
 void modDrinkLiquid(int drink, int liquid) {
+  int x;
+  int lq = drinks[drink][liquid].toInt();
   oled.setFontType(0);
   oled.clear(PAGE);
   oled.setCursor(0,0);
@@ -335,24 +257,22 @@ void modDrinkLiquid(int drink, int liquid) {
 
     if(digitalRead(bPinBot) == LOW) {
       Serial.println("OZ selected");
-      oled.clear(PAGE);
-      oled.setCursor(0,0);
-      oled.print("You sel\n\n");
-      printDrinkData(drink, NAME);
-      oled.display();
-      delay(SEC);
-      /* Modify data of a drink */
-      mod(drink);
+      //oled.clear(PAGE);
+      //oled.setCursor(0,0);
+      //oled.print("You sel\n\n");
+      //printDrinkData(drink, NAME);
+      //oled.display();
+      //delay(SEC);
       break;
     }
     
     if (x != -1) {
       if (x == LEFT) {
         while (xjoyStick() == LEFT) {;} // do nothing
-        drink--;
+        lq--;
       } else /* x == RIGHT */ {
         while (xjoyStick() == RIGHT) {;} // do nothing
-        drink++;
+        lq++;
       }
         
       if (drink < 0) drink = numDrinks-1;
@@ -367,49 +287,43 @@ void modDrinkLiquid(int drink, int liquid) {
   }
 }
 
+//------------------------------------------------------------------
 void modDrinkOZ(int drink, int oz) {
-       int x;
-       int y;
-       int drink = 0;
-       Serial.println("Change the dumb OZs.");
-       oled.clear(PAGE);
-       oled.setCursor(0,0);
-       oled.print("You sel\n\n");
-       printDrinkData(drink, NAME);
-       oled.display();
-       delay(SEC);
-       /* Modify data of a drink */
-       mod(drink);
-       break;
-     }
+    int x;
+    int y;
+    int drink = 0;
+    Serial.println("Change the dumb OZs.");
+    oled.clear(PAGE);
+    oled.setCursor(0,0);
+    oled.print("You sel\n\n");
+    printDrinkData(drink, NAME);
+    oled.display();
+    delay(SEC);
      
-     if (x != -1) {
-       oled.print("Choose OZs\n\n");
- 
-       if (x != -1) {
-       if (x == LEFT) {
-         while (xjoyStick() == LEFT) {;} // do nothing
-         while(xjoyStick() == LEFT) {;}  // do nothing
-         drink--;
-       } else /* x == RIGHT */ {
-         while (xjoyStick() == RIGHT) {;} // do nothing
-         drink++;
-       }
-          
-       if (drink < 0) drink = numDrinks-1;
-       if (drink < 0) drink = numDrinks-1; // Need to change this to show OZs
-       if (drink >= numDrinks) drink = 0;
-       oled.clear(PAGE);
-       oled.setCursor(0,0);
-       Serial.println(drinks[drink][NAME]);
-       Serial.println(drinks[drink][l1OZ - 1]);
-       oled.print("Push BBot to sel\n\n");
-       printDrinkData(drink, NAME);
-       oled.display();
-       printDrinkData(drink, l1OZ - 1);
-      }
+    if (x != -1) {
+        oled.print("Choose OZs\n\n");
+        
+        if (x == LEFT) {
+            while (xjoyStick() == LEFT) {;} // do nothing
+            drink--;
+        } else /* x == RIGHT */ {
+            while (xjoyStick() == RIGHT) {;} // do nothing
+            drink++;
+        }
+        if (drink < 0) drink = numDrinks-1;
+        if (drink < 0) drink = numDrinks-1; // Need to change this to show OZs
+        if (drink >= numDrinks) drink = 0;
+        oled.clear(PAGE);
+        oled.setCursor(0,0);
+        Serial.println(drinks[drink][NAME]);
+        Serial.println(drinks[drink][l1OZ - 1]);
+        oled.print("Push BBot to sel\n\n");
+        printDrinkData(drink, NAME);
+        oled.display();
+        printDrinkData(drink, l1OZ - 1);
+        }
     }
-  }
+}
 
 //------------------------------------------------------------------
 void newDrink() {
@@ -458,6 +372,39 @@ void newDrink() {
       oled.display();
     }
   }
+}
+
+//-----------------------------------------------------------------
+/*
+ * Print a spcific piece of information (column) about a drink.
+ * Requires the cursor and font to be set beforehand.
+ * 
+ * example:
+ * printDrinkData(4, l1OZ);
+ */
+void printDrinkData(const int drink, const int column) {
+  String info = drinks[drink][column];
+  oled.print(info);
+}
+
+//------------------------------------------------------------------
+int xjoyStick() {
+  int x = analogRead(pin1);
+  if ( x == RIGHT || x == LEFT ) {
+    //Serial.println("Valid");
+    //Serial.println(x);
+    return x;
+  } else 
+      return -1;
+}
+
+//------------------------------------------------------------------
+int yjoyStick() {
+  int y = analogRead(pin2);
+  if ( y == UP || y == DOWN ) {
+    return y;
+  } else
+      return -1;
 }
 
 //==================================================================
