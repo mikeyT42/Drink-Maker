@@ -367,6 +367,50 @@ void modDrinkLiquid(int drink, int liquid) {
   }
 }
 
+void modDrinkOZ(int drink, int oz) {
+       int x;
+       int y;
+       int drink = 0;
+       Serial.println("Change the dumb OZs.");
+       oled.clear(PAGE);
+       oled.setCursor(0,0);
+       oled.print("You sel\n\n");
+       printDrinkData(drink, NAME);
+       oled.display();
+       delay(SEC);
+       /* Modify data of a drink */
+       mod(drink);
+       break;
+     }
+     
+     if (x != -1) {
+       oled.print("Choose OZs\n\n");
+ 
+       if (x != -1) {
+       if (x == LEFT) {
+         while (xjoyStick() == LEFT) {;} // do nothing
+         while(xjoyStick() == LEFT) {;}  // do nothing
+         drink--;
+       } else /* x == RIGHT */ {
+         while (xjoyStick() == RIGHT) {;} // do nothing
+         drink++;
+       }
+          
+       if (drink < 0) drink = numDrinks-1;
+       if (drink < 0) drink = numDrinks-1; // Need to change this to show OZs
+       if (drink >= numDrinks) drink = 0;
+       oled.clear(PAGE);
+       oled.setCursor(0,0);
+       Serial.println(drinks[drink][NAME]);
+       Serial.println(drinks[drink][l1OZ - 1]);
+       oled.print("Push BBot to sel\n\n");
+       printDrinkData(drink, NAME);
+       oled.display();
+       printDrinkData(drink, l1OZ - 1);
+      }
+    }
+  }
+
 //------------------------------------------------------------------
 void newDrink() {
 // Check if there are 6 drinks
