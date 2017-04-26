@@ -5,9 +5,11 @@
 
 #define PIN_RESET 9
 #define DC_JUMPER 1
+
 #define SEC 1000
 #define MAX 900
 #define MIN 600
+
 #define NAME 0
 #define LIQUID1 1
 #define LIQUID2 3
@@ -15,6 +17,7 @@
 #define l1OZ 2
 #define l2OZ 4
 #define l3OZ 6
+
 #define SELECT 0
 #define MOD 1
 #define NEW 2
@@ -33,7 +36,7 @@ MicroOLED oled(PIN_RESET, DC_JUMPER);
 
 const byte numDrinks = 6;
 const byte numInfo = 7;
-String drinks[numDrinks][numInfo] = { 
+String drinks[numDrinks][numInfo] = { /* For initialization */
     {"drink1", "1", "2", "3", "2", "0", "0"},
     {"drink2", "1", "4", "1", "1", "7", "3"},
     {"drink3", "3", "4", "2", "1", "2", "2"},
@@ -76,7 +79,7 @@ void setup() {
   while(!Serial) {;}
   delay(SEC);
   //initializeEEPROMData();
-  //readDrinkData();
+  readDrinkData();
   Serial.print("\n\nSetup Complete\n\n");
 }
 //------------------------------------------------------------------
@@ -96,7 +99,7 @@ void loop() {
       modDrink();
       break;
     case NEW:
-    newDrink();
+      newDrink();
       break;
   }
 }
@@ -171,26 +174,28 @@ void drinkSelect(){
   Serial.print("\n\nEntered drink selection\n\n");
   
   oled.setFontType(0);
+  oled.clear(PAGE);
   oled.setCursor(0,0);
   Serial.println(drinks[drink][NAME]);
+  oled.print("Push BBot to sel\n\n");
   printDrinkData(drink, NAME);
   for (;;) {
     x = xjoyStick();
-
-      if(digitalRead(bPinBot) == LOW) {
-      Serial.println("Drink selected");
+    /* Drink is selected */
+    if (digitalRead(bPinBot) == LOW) {
+      Serial.println("drink selected");
       oled.clear(PAGE);
       oled.setCursor(0,0);
       oled.print("You sel\n\n");
       printDrinkData(drink, NAME);
       delay(SEC);
-      //Select drink function?
+      //makeDrink
       break;
     }
     
     if (x != -1) {
       if (x == LEFT) {
-        while (xjoyStick() == LEFT) {;} // do nothing
+        while(xjoyStick() == LEFT) {;}  // do nothing
         drink--;
       } else /* x == RIGHT */ {
         while (xjoyStick() == RIGHT) {;} // do nothing
@@ -199,8 +204,10 @@ void drinkSelect(){
         
       if (drink < 0) drink = numDrinks-1;
       if (drink >= numDrinks) drink = 0;
+      oled.clear(PAGE);
       oled.setCursor(0,0);
       Serial.println(drinks[drink][NAME]);
+      oled.print("Push BBot to sel\n\n");
       printDrinkData(drink, NAME);
     }
   }
@@ -242,8 +249,6 @@ int yjoyStick() {
     return y;
 }
 
-//------------------------------------------------------------------
-//------------------------------------------------------------------
 //------------------------------------------------------------------
 void modDrink() {
 // Modify drink name
@@ -295,6 +300,7 @@ void modDrink() {
     }
   }
 }
+
 /*
  * crnt "drink1"
  * _ _ _ _ _ _
@@ -309,8 +315,6 @@ void modTypeChanger() {
   
 }
 
-//------------------------------------------------------------------
-//------------------------------------------------------------------
 //------------------------------------------------------------------
 void newDrink() {
 // Check if there are 6 drinks
@@ -367,24 +371,6 @@ void newDrink() {
 */
 void initializeEEPROMData() {
   Serial.print("\n\nInitializing\n\n");
-  String tdrinks[numDrinks][numInfo] = { 
-    {"drink1", "1", "2", "3", "2", "0", "0"},
-    {"drink2", "1", "4", "1", "1", "7", "3"},
-    {"drink3", "3", "4", "2", "1", "2", "2"},
-    {"drink4", "0", "0", "1", "3", "4", "1"},
-    {"drink5", "0", "0", "3", "2", "4", "2"},
-    {"drink6", "4", "2", "9", "2", "5", "3"}
-  };
-  /*
-  tdrinks[0][NAME] = "drink1";
-  tdrinks[0][LIQUID1] = "1";
-  tdrinks[0][l1OZ] = "2";
-  tdrinks[0][LIQUID2] = "3";
-  tdrinks[0][l2OZ] = "2";
-  tdrinks[0][LIQUID3] = "0";
-  tdrinks[0][l3OZ] = "0";
-  */
-  //drinks = tdrinks;
   char c;
   int address;
   int column;
@@ -397,32 +383,32 @@ void initializeEEPROMData() {
     if (column == numInfo) {
       drink++;
       column = NAME;
-      Serial.print("address=");
-      Serial.println(address);
-      Serial.print("New drink\ndrink=");
-      Serial.println(drink);
+      //Serial.print("address=");
+      //Serial.println(address);
+      //Serial.print("New drink\ndrink=");
+      //Serial.println(drink);
       EEPROM.write(address, '\n');
       continue;
     }
-    info = tdrinks[drink][column];
-    Serial.print("info=");
-    Serial.println(info);
+    info = drinks[drink][column];
+    //Serial.print("info=");
+    //Serial.println(info);
     /* Add characters from info into EEPROM */
     for (int index = 0; ; index++, address++) {
       if (index == info.length()) {/* Reached the end of string */
-        Serial.print("address=");
-        Serial.println(address);
-        Serial.println("done writing info");
+        //Serial.print("address=");
+        //Serial.println(address);
+        //Serial.println("done writing info");
         EEPROM.write(address, ' ');
         column++;
         break;
       }
       c = info.charAt(index);
-      Serial.print("address=");
-      Serial.println(address);
-      Serial.print("let=\"");
-      Serial.print(c);
-      Serial.println('\"');
+      //Serial.print("address=");
+      //Serial.println(address);
+      //Serial.print("let=\"");
+      //Serial.print(c);
+      //Serial.println('\"');
       EEPROM.write(address, c);
     }
   }
@@ -451,11 +437,11 @@ void readDrinkData() {
       column = NAME;
       Serial.print("new drink\ndrink=");
       Serial.println(drink);
+      continue;
     }
     /* Reached the end of a string */
     if (c == ' ') {
       Serial.println("\nreached end of string");
-    Serial.print(c);
       Serial.print("info=\"");
       Serial.print(info);
       Serial.println('\"');
