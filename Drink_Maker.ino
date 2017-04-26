@@ -369,7 +369,7 @@ void newDrink() {
 /*
  * Initializes the data in eeprom
 */
-void initializeEEPROMData() {
+void saveEEPROMData() {
   Serial.print("\n\nInitializing\n\n");
   char c;
   int address;
