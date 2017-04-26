@@ -83,6 +83,8 @@ void setup() {
   Serial.print("\n\nSetup Complete\n\n");
 }
 //------------------------------------------------------------------
+//------------------------------------------------------------------
+//------------------------------------------------------------------
 void loop() {
   int ms;
   
@@ -94,8 +96,10 @@ void loop() {
       drinkSelect();
       break;
     case MOD:
+      modDrink();
       break;
     case NEW:
+      newDrink();
       break;
   }
 }
@@ -119,6 +123,8 @@ void printMenu() {
   oled.display();
 }
 
+//------------------------------------------------------------------
+//------------------------------------------------------------------
 //------------------------------------------------------------------
 /*
  * Controller for the menu.
@@ -147,8 +153,8 @@ int menuSelect() {
     } else if (digitalRead(bPinRight) == LOW) {  /* Create a new Drink */
       oled.clear(PAGE);
       oled.setCursor(5,10);
-      oled.print("Create a");
-      oled.setCursor(14,25);
+      oled.print("Create");
+      oled.setCursor(12,25);
       oled.print("new drink");
       oled.display();
       delay(SEC);
@@ -158,12 +164,14 @@ int menuSelect() {
 }
 
 //------------------------------------------------------------------
+//------------------------------------------------------------------
+//------------------------------------------------------------------
 void drinkSelect(){
   int x;
   int y;
   int drink = 0;
 
-  Serial.print("\n\nentered drink selection\n\n");
+  Serial.print("\n\nEntered drink selection\n\n");
   
   oled.setFontType(0);
   oled.clear(PAGE);
@@ -173,7 +181,6 @@ void drinkSelect(){
   printDrinkData(drink, NAME);
   for (;;) {
     x = xjoyStick();
-
     /* Drink is selected */
     if (digitalRead(bPinBot) == LOW) {
       Serial.println("drink selected");
@@ -206,6 +213,8 @@ void drinkSelect(){
   }
 }
 
+//------------------------------------------------------------------
+//------------------------------------------------------------------
 //------------------------------------------------------------------
 /*
  * Print a spcific piece of information (column) about a drink.
@@ -242,12 +251,114 @@ int yjoyStick() {
 
 //------------------------------------------------------------------
 void modDrink() {
+// Modify drink name
+// Modify liquid
+// Modify oz
+  int x;
+  int y;
+  int drink = 0;
+
+  Serial.print("\n\nEntered drink selection\n\n");
+  
+  oled.setFontType(0);
+  oled.setCursor(0,0);
+  Serial.println(drinks[drink][NAME]);
+  printDrinkData(drink, NAME);
+  for (;;) {
+    x = xjoyStick();
+
+    if(digitalRead(bPinBot) == LOW) {
+      Serial.println("Drink selected");
+      oled.clear(PAGE);
+      oled.setCursor(0,0);
+      oled.print("You sel\n\n");
+      printDrinkData(drink, NAME);
+      delay(SEC);
+      oled.clear(PAGE);
+      oled.setCursor(0,0);
+      // mod function
+      
+      break;
+    }
+    
+    if (x != -1) {
+      if (x == LEFT) {
+        while (xjoyStick() == LEFT) {;} // do nothing
+        drink--;
+      } else /* x == RIGHT */ {
+        while (xjoyStick() == RIGHT) {;} // do nothing
+        drink++;
+      }
+        
+      if (drink < 0) drink = numDrinks-1;
+      if (drink >= numDrinks) drink = 0;
+      oled.clear(PAGE);
+      oled.setCursor(0,0);
+      Serial.println(drinks[drink][NAME]);
+      oled.print("Push BBot to sel\n\n");
+      printDrinkData(drink, NAME);
+    }
+  }
+}
+
+/*
+ * crnt "drink1"
+ * _ _ _ _ _ _
+ * 
+ * a _ _ S _ _
+ */
+void modNameChanger() {
+  
+}
+
+void modTypeChanger() {
   
 }
 
 //------------------------------------------------------------------
 void newDrink() {
+// Check if there are 6 drinks
+// If there are 6 drinks, choose which one to replace
+  int x;
+  int y;
+  int drink = 0;
 
+  Serial.print("\n\nEntered drink selection\n\n");
+  
+  oled.setFontType(0);
+  oled.setCursor(0,0);
+  Serial.println(drinks[drink][NAME]);
+  printDrinkData(drink, NAME);
+  for (;;) {
+    x = xjoyStick();
+
+      if(digitalRead(bPinBot) == LOW) {
+      Serial.println("Drink selected");
+      oled.clear(PAGE);
+      oled.setCursor(0,0);
+      oled.print("You sel\n\n");
+      printDrinkData(drink, NAME);
+      delay(SEC);
+      //new drink function
+      break;
+    }
+    
+    if (x != -1) {
+      if (x == LEFT) {
+        while (xjoyStick() == LEFT) {;} // do nothing
+        drink--;
+      } else /* x == RIGHT */ {
+        while (xjoyStick() == RIGHT) {;} // do nothing
+        drink++;
+      }
+        
+      if (drink < 0) drink = numDrinks-1;
+      if (drink >= numDrinks) drink = 0;
+      oled.setCursor(0,0);
+      Serial.println(drinks[drink][NAME]);
+      printDrinkData(drink, NAME);
+    }
+  }
 }
 
 //==================================================================
@@ -317,7 +428,6 @@ void readDrinkData() {
   for(address = 0; drink < numDrinks; address++) {
     c = EEPROM.read(address);
     Serial.print("let=");
-    Serial.print(c);
     Serial.print(" @ address=");
     Serial.println(address);
     
@@ -331,7 +441,7 @@ void readDrinkData() {
     }
     /* Reached the end of a string */
     if (c == ' ') {
-      Serial.println("\nreached end of string\nadding:");
+      Serial.println("\nreached end of string");
       Serial.print("info=\"");
       Serial.print(info);
       Serial.println('\"');
