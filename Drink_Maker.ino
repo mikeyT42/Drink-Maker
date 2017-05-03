@@ -2,6 +2,7 @@
 #include <SFE_MicroOLED.h>
 #include <TimerOne.h>
 #include <EEPROM.h>
+//#include <Stepper.h>
 
 #define PIN_RESET 9
 #define DC_JUMPER 1
@@ -44,6 +45,12 @@ String drinks[MAXDRINKS][MAXCOLUMNS] = { /* For initialization */
   };
 byte dsize = 3;
 
+const int motor1 = 7;
+const int motor2 = 8;
+const int motor3 = 9;
+const int SPR = 200;  // Steps per revolution
+//Stepper someStepper(SPR, 10, 11, 12, 13);
+
 const byte bPinRight = 3;
 const byte bPinTop = 4;
 const byte bPinBot = 5;
@@ -65,6 +72,12 @@ void setup() {
   oled.begin();
   oled.clear(ALL);
   oled.display();
+
+  //someStepper.setSpeed(10);
+  //pinMode(motor1, OUTPUT); 
+  //pinMode(motor2, OUTPUT); 
+  //pinMode(motor3, OUTPUT);
+  
   Serial.begin(9600);
   while(!Serial) {;}
   delay(SEC);
@@ -475,5 +488,19 @@ void readDrinkData() {
     } else /* Add to the current read letter to the info string */
       info += c;
   }
+}
+
+//------------------------------------------------------------------
+// makeDrink plays with the motors
+void makeDrink() {
+  Serial.println("Forward");
+  //someStepper.step(10);
+  delay(500);
+
+  // Step backward 10 steps:
+  Serial.println("Backward");
+  //someStepper.step(-10);
+  delay(500);
+
 }
 
