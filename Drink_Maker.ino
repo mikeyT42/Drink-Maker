@@ -11,16 +11,14 @@
 #define MIN 600
 
 #define NAME 0
-#define C1 1
-#define C2 3
-#define C3 5
-#define C1OZ 2
-#define C2OZ 4
-#define C3OZ 6
+#define C1OZ 1
+#define C2OZ 2
+#define C3OZ 3
 
 #define SELECT 0
 #define MOD 1
 #define NEW 2
+
 #define LEFT 1
 #define RIGHT 1023
 #define UP 1023
@@ -37,7 +35,7 @@ MicroOLED oled(PIN_RESET, DC_JUMPER);
 const byte numDrinks = 6;
 const byte numInfo = 4;
 String drinks[numDrinks][numInfo] = { /* For initialization */
-    {"drink1", "2", "2", "0"},
+    {"drink1", "2.1", "2.3", "0"},
     {"drink2", "2", "2", "3"},
     {"drink3", "2", "1", "2"},
     {"drink4", "0", "1", "2"},
@@ -226,35 +224,51 @@ int drinkSelect(){
 void modDrink(int drink) {
   Serial.print("\n\nEntered mod drink\n\n");
 
-  modCont(drink, C1);
+  /*modCont(drink, C1);
   modOZ(drink, C1OZ);
   modCont(drink, C2);
   modOZ(drink, C2OZ);
   modCont(drink, C3);
-  modOZ(drink, C3OZ);
-
-  saveEEPROMData();
-}
-
-//------------------------------------------------------------------
-void modOZ(int drink, int COZ) {
+  modOZ(drink, C3OZ);*/
   int x;
-  double oz = drinks[drink][COZ].toFloat();
+  int y;
+  double oz = drinks[drink][C1OZ].toFloat();
+  int cont = 1;
 
   oled.setFontType(0);
   oled.clear(PAGE);
   printHeader(drink);
-  oled.println("Choose\noz amount");
+  printCont(cont);
   printOZ(oz);
   oled.display();
   
   for (;;) {
     x = xjoyStick();
+    y = yjoyStick();
 
     if(digitalRead(bPinBot) == LOW) {
       Serial.println("OZ selected");
       while (digitalRead(bPinBot) == LOW) {;}
       break;
+    }
+
+    if (y != -1) {
+      if (y == DOWN) {
+        while (yjoyStick() == DOWN) {;}
+        cont--;
+      } else /* y == Up */ {
+        while (yjoyStick() == UP) {;}
+        cont++;
+      }
+      if (cont < 1) cont = 3;
+      if (cont > 3) cont = 1;
+
+      oz = drinks[drink][cont].toFloat();
+      oled.clear(PAGE);
+      printHeader(drink);
+      printCont(cont);
+      printOZ(oz);
+      oled.display();
     }
     
     if (x != -1) {
@@ -269,13 +283,16 @@ void modOZ(int drink, int COZ) {
       if (oz <= 0) oz = 10;
       if (oz > 10) oz = 0;
 
+      drinks[drink][cont] = String(oz);
       oled.clear(PAGE);
       printHeader(drink);
-      oled.println("Choose\noz amount");
+      printCont(cont);
       printOZ(oz);
       oled.display();
     }
   }
+
+  saveEEPROMData();
 }
 
 //------------------------------------------------------------------
@@ -288,7 +305,7 @@ void printOZ(double n) {
 
 //------------------------------------------------------------------
 void printHeader(int drink) {
-  oled.setCursor(0,0);
+  oled.setCursor(4,0);
   oled.print("<");
   printDrinkData(drink, NAME);
   oled.println(">");
@@ -342,7 +359,7 @@ void modCont(int drink, int CONT) {
 //------------------------------------------------------------------
 void printCont(int cont) {
   oled.setFontType(0);
-  oled.setCursor(0,30);
+  oled.setCursor(0,10);
   oled.print("Cntnr ");
   oled.print(cont);
 }
@@ -424,6 +441,8 @@ int xjoyStick() {
 int yjoyStick() {
   int y = analogRead(pin2);
   if ( y == UP || y == DOWN ) {
+    //Serial.println("Valid");
+    //Serial.println(y);
     return y;
   } else
       return -1;
@@ -432,55 +451,6 @@ int yjoyStick() {
 //==================================================================
 //==================================================================
 //==================================================================
-
-//------------------------------------------------------------------
-/*
- * Saves the data in drinks[][] to eeprom
-*/
-void saveData() {
-  Serial.print("\n\nInitializing\n\n");
-  char c;
-  int address;
-  int column;
-  int drink;
-  String info;
-
-  /* Add to EEPROM */
-  for (address = drink = column = 0; drink < numDrinks; address++) {
-    /* Reached the end of a line */
-    if (column == numInfo) {
-      drink++;
-      column = NAME;
-      //Serial.print("address=");
-      //Serial.println(address);
-      //Serial.print("New drink\ndrink=");
-      //Serial.println(drink);
-      EEPROM.write(address, '\n');
-      continue;
-    }
-    info = drinks[drink][column];
-    //Serial.print("info=");
-    //Serial.println(info);
-    /* Add characters from info into EEPROM */
-    for (int index = 0; ; index++, address++) {
-      if (index == info.length()) {/* Reached the end of string */
-        //Serial.print("address=");
-        //Serial.println(address);
-        //Serial.println("done writing info");
-        EEPROM.write(address, ' ');
-        column++;
-        break;
-      }
-      c = info.charAt(index);
-      //Serial.print("address=");
-      //Serial.println(address);
-      //Serial.print("let=\"");
-      //Serial.print(c);
-      //Serial.println('\"');
-      EEPROM.write(address, c);
-    }
-  }
-}
 
 //------------------------------------------------------------------
 /*
